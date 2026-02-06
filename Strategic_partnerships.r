@@ -2,24 +2,21 @@
 library(rvest)
 library(dplyr)
 
-# Read the Wikipedia page
 url <- "https://en.wikipedia.org/wiki/List_of_diplomatic_partnerships_of_China"
 page <- read_html(url)
 
-# Extract all tables from the page
-tables <- page %>% html_table(fill = TRUE)
+tables <- page %>% html_table(fill = TRUE) #extraction des tableaux
 
-# See how many tables there are
+
 length(tables)
 
-# View the third table
 tables[[3]]
 Partners <- tables[[4]]
 Special_partnership <- tables[[5]]
 
 View(Special_partnership)
 
-# Or view all tables to find the one you want
+# pour voir tous les tableaux
 for(i in 1:length(tables)) {
   print(paste("Table", i))
   print(head(tables[[i]]))
@@ -37,7 +34,7 @@ View(All_partnerships)
 All_partnerships$Name
 #Taking from Churen and Yaying's categorization : 
 
-##Grouping variables for those who have the same names
+##Grouping variables for those who have the same names ((or at least trying))
 df_merged <- All_partnerships %>%
   group_by(Name) %>%
   summarise(across(everything(), ~paste(., collapse = ", ")))
@@ -90,7 +87,7 @@ df_merged <- df_merged %>% mutate(
     ))
 
 
-#### Giving it a number 
+#### Giving it a number (numeric categ)
 df_merged <- df_merged %>%
   mutate(
     Categ_numeric =
@@ -183,8 +180,7 @@ df_trial <- df_trial %>%
       Countries %in% c("United States", "Canada") ~ "North America",
       
       TRUE ~ "Other"
-    )
-  )
+    ))
 
 df_LAC <- df_trial %>%
   filter(Region == "Latin America & Caribbean")
