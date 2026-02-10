@@ -2,31 +2,31 @@
 library(rvest)
 library(dplyr)
 
+# Read the Wikipedia page
 url <- "https://en.wikipedia.org/wiki/List_of_diplomatic_partnerships_of_China"
 page <- read_html(url)
 
-tables <- page %>% html_table(fill = TRUE) #extraction des tableaux
+# Extract all tables from the page
+tables <- page %>% html_table(fill = TRUE)
+length(tables) #nb of tables 
+
+#checking which tables I need
+View(tables)
 
 
-length(tables)
-
+#starting w the third table (stratefic partners ++ a lot of LAC countries)
 tables[[3]]
 Partners <- tables[[4]]
 Special_partnership <- tables[[5]]
 
 View(Special_partnership)
 
-# pour voir tous les tableaux
-for(i in 1:length(tables)) {
-  print(paste("Table", i))
-  print(head(tables[[i]]))
-}
 
-# Data frame of strategic partnerships (accessed thurday 5th 2026, 17h35 CST)
-Strategic_partners <- tables[[3]][,-4]  # Change the number to the table you want
+# Data frame of strategic partnerships (feb 5th 2026, 17h35 CST)
+Strategic_partners <- tables[[3]][,-4]  
 View(Strategic_partners)
 
-All_partnerships <- merge(df, Special_partnership,all.y = TRUE, all.x = TRUE )
+All_partnerships <- merge(df, Special_partnership, all.y = TRUE, all.x = TRUE )
 All_partnerships <- All_partnerships[,-2]
 View(All_partnerships)
 
@@ -34,7 +34,7 @@ View(All_partnerships)
 All_partnerships$Name
 #Taking from Churen and Yaying's categorization : 
 
-##Grouping variables for those who have the same names ((or at least trying))
+##Grouping variables for those who have the same names
 df_merged <- All_partnerships %>%
   group_by(Name) %>%
   summarise(across(everything(), ~paste(., collapse = ", ")))
@@ -87,7 +87,7 @@ df_merged <- df_merged %>% mutate(
     ))
 
 
-#### Giving it a number (numeric categ)
+#### Giving it a number 
 df_merged <- df_merged %>%
   mutate(
     Categ_numeric =
@@ -122,52 +122,6 @@ df_trial$Countries
 df_trial <- df_trial %>%
   mutate(
     Region = case_when(
-      # East Asia & Pacific
-      Countries %in% c("China", "Japan", "South Korea", "North Korea", "Mongolia",
-                     "Singapore", "Malaysia", "Indonesia", "Thailand", "Vietnam",
-                     "Philippines", "Myanmar", "Cambodia", "Brunei", "Timor-Leste",
-                     "Australia", "New Zealand", "Papua New Guinea", "Fiji",
-                     "Solomon Islands", "Vanuatu", "Samoa", "Tonga", "Cook Islands",
-                     "Micronesia", "Niue") ~ "East Asia & Pacific",
-      
-      # South Asia
-      Countries %in% c("India", "Pakistan", "Bangladesh", "Sri Lanka", "Nepal",
-                     "Afghanistan", "Maldives") ~ "South Asia",
-      
-      # Central Asia
-      Countries %in% c("Kazakhstan", "Uzbekistan", "Turkmenistan", "Kyrgyzstan",
-                     "Tajikistan") ~ "Central Asia",
-      
-      # Middle East & North Africa
-      Countries %in% c("Saudi Arabia", "United Arab Emirates", "Iran", "Iraq",
-                     "Turkey", "Egypt", "Algeria", "Morocco", "Tunisia", "Libya",
-                     "Yemen", "Oman", "Qatar", "Kuwait", "Bahrain", "Jordan",
-                     "Lebanon", "Syria", "Palestine", "Israel") ~ "Middle East & North Africa",
-      
-      # Sub-Saharan Africa
-      Countries %in% c("South Africa", "Nigeria", "Kenya", "Ethiopia", "Ghana",
-                     "Tanzania", "Uganda", "Angola", "Mozambique", "Zimbabwe",
-                     "Zambia", "Namibia", "Botswana", "Rwanda", "Senegal",
-                     "Ivory Coast", "Democratic Republic of the Congo",
-                     "Republic of the Congo", "Gabon", "Cameroon", "Mali",
-                     "Burkina Faso", "Niger", "Chad", "Guinea", "Sierra Leone",
-                     "Liberia", "Mauritania", "Madagascar", "Malawi", "Burundi",
-                     "Togo", "Benin", "Central African Republic", "Equatorial Guinea",
-                     "Eritrea", "Djibouti", "Somalia", "Sudan", "Guinea-Bissau",
-                     "Lesotho", "Mauritius", "Seychelles", "Comoros",
-                     "São Tomé and Príncipe", "Cape Verde") ~ "Sub-Saharan Africa",
-      
-      # Europe
-      Countries %in% c("Russia", "Germany", "United Kingdom", "France", "Italy",
-                     "Spain", "Poland", "Romania", "Netherlands", "Belgium",
-                     "Greece", "Portugal", "Czech Republic", "Hungary", "Sweden",
-                     "Austria", "Belarus", "Bulgaria", "Serbia", "Denmark",
-                     "Finland", "Slovakia", "Norway", "Ireland", "Croatia",
-                     "Bosnia and Herzegovina", "Albania", "Lithuania", "Slovenia",
-                     "Latvia", "Estonia", "North Macedonia", "Iceland", "Malta",
-                     "Cyprus", "Andorra", "San Marino", "Switzerland",
-                     "Ukraine", "Georgia", "Armenia", "Azerbaijan") ~ "Europe",
-      
       # Latin America & Caribbean
       Countries %in% c("Brazil", "Mexico", "Argentina", "Colombia", "Chile",
                      "Peru", "Venezuela", "Ecuador", "Bolivia", "Uruguay",
@@ -179,13 +133,18 @@ df_trial <- df_trial %>%
       # North America
       Countries %in% c("United States", "Canada") ~ "North America",
       
-      TRUE ~ "Other"
-    ))
+      TRUE ~ "Elsewhere in the world"
+    )
+  )
 
 df_LAC <- df_trial %>%
   filter(Region == "Latin America & Caribbean")
 View(df_LAC)
 
+library(writexl)
+write_xlsx(df_LAC, "LAC_partnerships.xlsx")
+
+hist(df_LAC$Categ_numeric, breaks = 16)
 library(writexl)
 write_xlsx(df_LAC, "LAC_partnerships.xlsx")
 
